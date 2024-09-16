@@ -15,7 +15,7 @@ app.use((_req, res, next) => {
 });
 
 app.get("/test", function (req, res) {
-  console.log("App Working");
+  res.send("Working");
 })
 
 app.post("/", function (req, res) {
