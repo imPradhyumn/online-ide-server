@@ -14,10 +14,6 @@ app.use((_req, res, next) => {
   next();
 });
 
-app.get("/test", function (req, res) {
-  res.send("Working");
-})
-
 app.post("/", function (req, res) {
   let data = req.body.data;
   const chosenLangage = req.body.data.chosenLanguage;
@@ -52,13 +48,29 @@ app.post("/", function (req, res) {
     });
   }
 
+  function runJavaCode(codeToExecute) {
+    const fileName = "Demo.java";
+    fs.writeFileSync(fileName, codeToExecute, function (err) {
+      if (err) throw err;
+    });
+
+    child_process.exec(`javac ${fileName}`, (err, stdout, stderr) => {
+      if (stderr === '') {
+        child_process.exec(`java Demo`, (err, stdout, stderr) => {
+          res.status(200).send({ stdout, stderr });
+        })
+      }
+      else res.status(400).send({ stderr, stdout });
+    })
+  }
+
   function removeFile() {
     fs.unlinkSync(fileName, (err) => {
       if (err) throw err;
       console.log("path/file.txt was deleted");
     });
   }
-
+  
   switch (chosenLangage) {
     case "python":
       const args = req.body.data.userInputs || "";
@@ -84,15 +96,19 @@ app.post("/", function (req, res) {
       fileName = createScriptFile(".js", data.code);
       break;
 
+    case "java":
+      runJavaCode(data.code);
+      return;
+
     default:
       output = "Language not supported yet !!";
-      res.status(200).send({ data: output });
+      res.status(200).send({ stdout: output });
       break;
   }
 
-  if (fileName == "") return;
+  if (fileName === "") return;
 
-  if (syntaxErr != "") {
+  if (syntaxErr !== "") {
     res.status(200).send({ stdout: "", stderr: syntaxErr });
     return;
   }
