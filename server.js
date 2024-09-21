@@ -14,6 +14,10 @@ app.use((_req, res, next) => {
   next();
 });
 
+app.get("/test", function (req, res) {
+  res.status(200).send("App is up!!");
+})
+
 app.post("/", function (req, res) {
   let data = req.body.data;
   const chosenLangage = req.body.data.chosenLanguage;
